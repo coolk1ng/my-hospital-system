@@ -14,11 +14,11 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.codesniper</groupId>
-    <artifactId>registered-parent</artifactId>
+    <artifactId>my-hospital-system</artifactId>
     <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
-    <name>registered-parent</name>
-    <description>registered-parent</description>
+    <name>my-hospital-system</name>
+    <description>my-hospital-system</description>
 
     <properties>
         <java.version>1.8</java.version>
