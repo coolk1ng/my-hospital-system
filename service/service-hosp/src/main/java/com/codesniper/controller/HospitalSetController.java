@@ -70,4 +70,28 @@ public class HospitalSetController {
             return Result.fail();
         }
     }
+
+    @ApiOperation("根据id查询医院设置")
+    @PostMapping("/getHospitalSetById")
+    public Result<HospitalSet> getHospitalSetById(Long id){
+        return Result.ok(hospitalSetService.getById(id));
+    }
+
+    @ApiOperation("修改医院设置")
+    @PostMapping("/updateHospitalSet")
+    public Result<Boolean> updateHospitalSet(@RequestBody HospitalSet hospitalSet){
+        boolean flag = hospitalSetService.updateById(hospitalSet);
+        if (flag){
+            return Result.ok();
+        }else{
+            return Result.fail();
+        }
+    }
+
+    @ApiOperation("批量删除医院设置")
+    @PostMapping("/batchRemoveHospitalSet")
+    public Result<Boolean> batchRemoveHospitalSet(@RequestBody List<Long> ids){
+        hospitalSetService.removeByIds(ids);
+        return Result.ok();
+    }
 }
