@@ -94,4 +94,24 @@ public class HospitalSetController {
         hospitalSetService.removeByIds(ids);
         return Result.ok();
     }
+
+    @ApiOperation("锁定,解锁医院设置")
+    @PostMapping("/lockAndUnLockHospitalSet")
+    public Result<Boolean> lockAndUnLockHospitalSet(Long id,Integer status){
+        HospitalSet hospitalSet = hospitalSetService.getById(id);
+        //设置医院设置状态
+        hospitalSet.setStatus(status);
+        hospitalSetService.updateById(hospitalSet);
+        return Result.ok();
+    }
+
+    @ApiOperation("发送签名,秘钥")
+    @PostMapping("/sendSignAndKey")
+    public Result<Boolean> sendSignAndKey(Long id){
+        HospitalSet hospitalSet = hospitalSetService.getById(id);
+        String signKey = hospitalSet.getSignKey();
+        String hoscode = hospitalSet.getHoscode();
+        //TODO 发送短信
+        return Result.ok();
+    }
 }
