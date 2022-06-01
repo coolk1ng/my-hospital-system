@@ -1,4 +1,4 @@
-package com.codesniper.yygh.model.cmn;
+package com.codesniper.yygh.model.dict;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
