@@ -17,4 +17,10 @@ public class HospitalSetQueryVo extends PageEntity {
 
     @ApiModelProperty(value = "医院编号")
     private String hoscode;
+
+    @ApiModelProperty(value = "id")
+    private Long id;
+
+    @ApiModelProperty(value = "状态")
+    private Integer status;
 }

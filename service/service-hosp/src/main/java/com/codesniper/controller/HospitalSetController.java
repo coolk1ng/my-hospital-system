@@ -27,14 +27,15 @@ import java.util.Random;
 @RestController
 @RequestMapping("/admin/hosp/hospitalSet")
 @Api(tags = "医院设置管理")
+@CrossOrigin
 public class HospitalSetController {
 
     @Autowired
     private HospitalSetService hospitalSetService;
 
     @ApiOperation("获取所有医院设置")
-    @PostMapping("/getAllHospitalSet")
-    public Result<PageInfo<HospitalSet>> getAllHospitalSet(@RequestBody(required = false) HospitalSetQueryVo dto) {
+    @PostMapping("/getHospitalSetList")
+    public Result<PageInfo<HospitalSet>> getHospitalSetList(@RequestBody(required = false) HospitalSetQueryVo dto) {
         PageHelper.startPage(dto.getPageNum() == null ? 1 : dto.getPageNum(), dto.getPageSize() == null ? 10 : dto.getPageSize());
         //封装查询参数
         QueryWrapper<HospitalSet> queryWrapper = new QueryWrapper<>();
@@ -46,8 +47,8 @@ public class HospitalSetController {
 
     @ApiOperation("删除医院设置")
     @PostMapping("/deleteHospitalSetById")
-    public Result<Boolean> deleteHospitalSetById(Long id) {
-        boolean flag = hospitalSetService.removeById(id);
+    public Result<Boolean> deleteHospitalSetById(@RequestBody HospitalSetQueryVo dto) {
+        boolean flag = hospitalSetService.removeById(dto.getId());
         if (flag) {
             return Result.ok();
         } else {
@@ -72,8 +73,8 @@ public class HospitalSetController {
     }
 
     @ApiOperation("根据id查询医院设置")
-    @PostMapping("/getHospitalSetById")
-    public Result<HospitalSet> getHospitalSetById(Long id){
+    @GetMapping("/getHospitalSetById/{id}")
+    public Result<HospitalSet> getHospitalSetById(@PathVariable Long id){
         return Result.ok(hospitalSetService.getById(id));
     }
 
@@ -90,17 +91,17 @@ public class HospitalSetController {
 
     @ApiOperation("批量删除医院设置")
     @PostMapping("/batchRemoveHospitalSet")
-    public Result<Boolean> batchRemoveHospitalSet(@RequestBody List<Long> ids){
-        hospitalSetService.removeByIds(ids);
+    public Result<Boolean> batchRemoveHospitalSet(@RequestBody List<Long> idList){
+        hospitalSetService.removeByIds(idList);
         return Result.ok();
     }
 
     @ApiOperation("锁定,解锁医院设置")
     @PostMapping("/lockAndUnLockHospitalSet")
-    public Result<Boolean> lockAndUnLockHospitalSet(Long id,Integer status){
-        HospitalSet hospitalSet = hospitalSetService.getById(id);
+    public Result<Boolean> lockAndUnLockHospitalSet(@RequestBody HospitalSetQueryVo dto){
+        HospitalSet hospitalSet = hospitalSetService.getById(dto.getId());
         //设置医院设置状态
-        hospitalSet.setStatus(status);
+        hospitalSet.setStatus(dto.getStatus());
         hospitalSetService.updateById(hospitalSet);
         return Result.ok();
     }
