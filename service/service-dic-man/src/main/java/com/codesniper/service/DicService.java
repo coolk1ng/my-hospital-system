@@ -3,7 +3,9 @@ package com.codesniper.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.codesniper.yygh.model.dict.Dict;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -20,4 +22,18 @@ public interface DicService extends IService<Dict> {
      * @return List<Dict>
      */
     List<Dict> getChildrenData(Long id);
+
+    /** 
+     * 导出excel
+     * @param httpServletResponse 
+     * @return void
+     */
+    void exportDictData(HttpServletResponse httpServletResponse);
+
+    /** 
+     * 导入excel
+     * @param file 
+     * @return void
+     */
+    void importDictData(MultipartFile file);
 }
