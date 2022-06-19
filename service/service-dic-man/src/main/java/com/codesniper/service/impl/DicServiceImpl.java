@@ -10,6 +10,8 @@ import com.codesniper.service.DicService;
 import com.codesniper.yygh.model.dict.Dict;
 import com.codesniper.yygh.vo.cmn.DictEeVo;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +31,7 @@ public class DicServiceImpl extends ServiceImpl<DictMapper, Dict> implements Dic
 
 
     @Override
+    @Cacheable(value = "dict", keyGenerator = "keyGenerator")
     public List<Dict> getChildrenData(Long id) {
         QueryWrapper<Dict> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("parent_id", id);
@@ -65,6 +68,7 @@ public class DicServiceImpl extends ServiceImpl<DictMapper, Dict> implements Dic
     }
 
     @Override
+    @CacheEvict(value = "dict", allEntries = true)
     public void importDictData(MultipartFile file) {
         try {
             EasyExcel.read(file.getInputStream(), DictEeVo.class, new DictListener(baseMapper)).sheet().doRead();
