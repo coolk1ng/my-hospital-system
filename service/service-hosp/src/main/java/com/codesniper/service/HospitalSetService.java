@@ -11,5 +11,11 @@ import com.codesniper.yygh.model.hosp.HospitalSet;
  * @since 2022-05-29
  */
 public interface HospitalSetService extends IService<HospitalSet> {
-
+    
+    /** 
+     * 根据hoscode查询signKey
+     * @param hoscode 
+     * @return String
+     */
+    String getSignKey(String hoscode);
 }

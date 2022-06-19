@@ -11,13 +11,18 @@ spring:
 # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://110.40.236.91:3306/yygh_hosp?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://110.40.236.91:3306/yygh_hosp?serverTimezone=Asia/Shanghai&useUnicode=true&useSSL=false&characterEncoding=utf-8
     username: yygh_hosp
     password: pSjDheEe85AAtTeM
 # 返回json全局时间格式
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+  data:
+# mongodb
+    mongodb:
+      uri: mongodb://110.40.236.91:27017/yygh_hosp
+      auto-index-creation: false
 # 分页配置
 pagehelper:
   helperDialect: mysql
