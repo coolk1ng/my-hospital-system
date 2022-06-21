@@ -34,16 +34,18 @@ public class HospitalServiceImpl implements HospitalService {
         if (curHospital != null) {
             hospital.setStatus(curHospital.getStatus());
             hospital.setCreateTime(curHospital.getCreateTime());
-            hospital.setUpdateTime(new Date());
-            hospital.setIsDeleted(0);
-            hospitalRepository.save(hospital);
         }else {
             // 不存在,进行添加
             hospital.setStatus(0);
             hospital.setCreateTime(new Date());
-            hospital.setUpdateTime(new Date());
-            hospital.setIsDeleted(0);
-            hospitalRepository.save(hospital);
         }
+        hospital.setUpdateTime(new Date());
+        hospital.setIsDeleted(0);
+        hospitalRepository.save(hospital);
+    }
+
+    @Override
+    public Hospital getHospitalByHoscode(String hoscode) {
+        return hospitalRepository.getHospitalByHoscode(hoscode);
     }
 }
