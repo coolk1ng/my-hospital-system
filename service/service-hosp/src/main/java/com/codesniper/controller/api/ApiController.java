@@ -8,9 +8,12 @@ import com.codesniper.common.utils.MD5;
 import com.codesniper.service.DepartmentService;
 import com.codesniper.service.HospitalService;
 import com.codesniper.service.HospitalSetService;
+import com.codesniper.service.ScheduleService;
 import com.codesniper.yygh.model.hosp.Department;
 import com.codesniper.yygh.model.hosp.Hospital;
+import com.codesniper.yygh.model.hosp.Schedule;
 import com.codesniper.yygh.vo.hosp.DepartmentQueryVo;
+import com.codesniper.yygh.vo.hosp.ScheduleQueryVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +42,9 @@ public class ApiController {
 
     @Autowired
     private DepartmentService departmentService;
+
+    @Autowired
+    private ScheduleService scheduleService;
 
     @PostMapping("/hospital/show")
     public Result<Hospital> getHospital(HttpServletRequest httpServletRequest) {
@@ -169,6 +175,42 @@ public class ApiController {
         return Result.ok();
     }
 
+    @PostMapping("/saveSchedule")
+    public Result<Boolean> saveSchedule(HttpServletRequest httpServletRequest) {
+        Map<String, Object> map = this.isCheckBySignKey(httpServletRequest);
+        scheduleService.save(map);
+        return Result.ok();
+    }
+
+    @PostMapping("/schedule/list")
+    public Result<Page<Schedule>> getScheduleList(HttpServletRequest httpServletRequest) {
+        Map<String, Object> map = this.isCheckBySignKey(httpServletRequest);
+        // 当前页和每页记录数
+        Integer page = StringUtils.isEmpty((String) map.get("page")) ? 1 : Integer.parseInt((String) map.get("page"));
+        Integer limit = StringUtils.isEmpty((String) map.get("limit")) ? 1 : Integer.parseInt((String) map.get("limit"));
+
+        ScheduleQueryVo scheduleQueryVo = new ScheduleQueryVo();
+        scheduleQueryVo.setHoscode((String) map.get("hoscode"));
+        scheduleQueryVo.setHoscode((String) map.get("depcode"));
+
+        Page<Schedule> schedulePage = scheduleService.findPageSchedule(page,limit,scheduleQueryVo);
+        return Result.ok(schedulePage);
+    }
+
+    @PostMapping("/schedule/remove")
+    public Result<Boolean> removeSchedule(HttpServletRequest httpServletRequest) {
+        Map<String, Object> map = this.isCheckBySignKey(httpServletRequest);
+        String hoscode =(String) map.get("hoscode");
+        String hosScheduleId =(String) map.get("hosScheduleId");
+        scheduleService.remove(hoscode,hosScheduleId);
+        return Result.ok();
+    }
+
+    /**
+     * 签名校验
+     * @param httpServletRequest
+     * @return Map<String,Object>
+     */
     public Map<String, Object> isCheckBySignKey(HttpServletRequest httpServletRequest) {
         Map<String, String[]> parameterMap = httpServletRequest.getParameterMap();
         Map<String, Object> map = HttpRequestHelper.switchMap(parameterMap);

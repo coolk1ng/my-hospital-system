@@ -34,7 +34,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         Department department = JSONObject.parseObject(mapString, Department.class);
 
         //查询科室信息
-        Department departmentExist =  departmentRepository.getDepartmentByHoscodeAndDepcode(department.getHoscode(),department.getDepcode());
+        Department departmentExist = departmentRepository.getDepartmentByHoscodeAndDepcode(department.getHoscode(), department.getDepcode());
 
         // 存在编辑,不存在新增
         if (departmentExist == null) {
@@ -48,8 +48,8 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public Page<Department> getDepartmentPage(Integer page, Integer limit, DepartmentQueryVo departmentQueryVo) {
         Department department = new Department();
-        BeanUtils.copyProperties(departmentQueryVo,department);
-        PageRequest pageRequest = PageRequest.of(page, limit);
+        BeanUtils.copyProperties(departmentQueryVo, department);
+        PageRequest pageRequest = PageRequest.of(page - 1, limit);
         ExampleMatcher exampleMatcher = ExampleMatcher.matching()
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
                 .withIgnoreCase(true);
@@ -60,7 +60,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public void remove(String hoscode, String depcode) {
         Department department = departmentRepository.getDepartmentByHoscodeAndDepcode(hoscode, depcode);
-        if (department !=null) {
+        if (department != null) {
             departmentRepository.deleteById(department.getId());
         }
     }
