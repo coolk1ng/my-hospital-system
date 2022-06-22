@@ -1,6 +1,8 @@
 package com.codesniper.service;
 
 import com.codesniper.yygh.model.hosp.Hospital;
+import com.codesniper.yygh.vo.hosp.HospitalQueryVo;
+import org.springframework.data.domain.Page;
 
 import java.util.Map;
 
@@ -24,4 +26,11 @@ public interface HospitalService {
      * @return Hospital
      */
     Hospital getHospitalByHoscode(String hoscode);
+
+    /** 
+     * 查询医院列表
+     * @param hospitalQueryVo 
+     * @return Page<Hospital>
+     */
+    Page<Hospital> getHospitalList(HospitalQueryVo hospitalQueryVo);
 }

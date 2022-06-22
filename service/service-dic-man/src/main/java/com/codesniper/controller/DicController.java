@@ -46,4 +46,16 @@ public class DicController {
     public void importDictData(MultipartFile file) {
         dicService.importDictData(file);
     }
+
+    @ApiOperation("查询dictName")
+    @PostMapping("/getDictName")
+    public String getDictName(@RequestParam("dictCode") String dictCode,@RequestParam("value") String value) {
+        return dicService.getDictName(dictCode,value);
+    }
+
+    @PostMapping("/getDictNameByValue")
+    public String getDictNameByValue(@RequestParam("value") String value) {
+        return dicService.getDictName("",value);
+    }
+
 }

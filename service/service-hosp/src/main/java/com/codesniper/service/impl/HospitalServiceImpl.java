@@ -1,10 +1,17 @@
 package com.codesniper.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.codesniper.client.DictFeignClient;
 import com.codesniper.repository.HospitalRepository;
 import com.codesniper.service.HospitalService;
 import com.codesniper.yygh.model.hosp.Hospital;
+import com.codesniper.yygh.vo.hosp.HospitalQueryVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -21,6 +28,9 @@ public class HospitalServiceImpl implements HospitalService {
 
     @Autowired
     private HospitalRepository hospitalRepository;
+
+    @Autowired
+    private DictFeignClient dictFeignClient;
 
     @Override
     public void save(Map<String, Object> map) {
@@ -42,6 +52,37 @@ public class HospitalServiceImpl implements HospitalService {
         hospital.setUpdateTime(new Date());
         hospital.setIsDeleted(0);
         hospitalRepository.save(hospital);
+    }
+
+    @Override
+    public Page<Hospital> getHospitalList(HospitalQueryVo hospitalQueryVo) {
+        PageRequest pageRequest = PageRequest.of(hospitalQueryVo.getPageNum(), hospitalQueryVo.getPageSize());
+
+        ExampleMatcher exampleMatcher = ExampleMatcher.matching()
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+                .withIgnoreCase(true);
+
+        Hospital hospital = new Hospital();
+        BeanUtils.copyProperties(hospitalQueryVo,hospital);
+
+        Example<Hospital> example= Example.of(hospital, exampleMatcher);
+        Page<Hospital> pages = hospitalRepository.findAll(example, pageRequest);
+
+        pages.getContent().forEach(this::setHospitalHosType);
+        return pages;
+    }
+
+    private Hospital setHospitalHosType(Hospital hospital) {
+        String hostype = dictFeignClient.getDictName("Hostype", hospital.getHostype());
+        // 查询省,市,地区
+        String cityCode = dictFeignClient.getDictNameByValue(hospital.getCityCode());
+        String provinceCode = dictFeignClient.getDictNameByValue(hospital.getProvinceCode());
+        String districtCode = dictFeignClient.getDictNameByValue(hospital.getDistrictCode());
+
+        // 放到map中
+        hospital.getParam().put("hostype",hostype);
+        hospital.getParam().put("fullAddress",provinceCode+cityCode+districtCode);
+        return hospital;
     }
 
     @Override

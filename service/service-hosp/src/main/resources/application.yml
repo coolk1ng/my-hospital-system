@@ -23,6 +23,9 @@ spring:
     mongodb:
       uri: mongodb://110.40.236.91:27017/yygh_hosp
       auto-index-creation: false
+  cloud:
+    nacos:
+      server-addr: 110.40.236.91:8848
 # 分页配置
 pagehelper:
   helperDialect: mysql

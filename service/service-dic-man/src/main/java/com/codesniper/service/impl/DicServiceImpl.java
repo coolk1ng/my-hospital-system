@@ -9,6 +9,7 @@ import com.codesniper.mapper.DictMapper;
 import com.codesniper.service.DicService;
 import com.codesniper.yygh.model.dict.Dict;
 import com.codesniper.yygh.vo.cmn.DictEeVo;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -74,6 +75,28 @@ public class DicServiceImpl extends ServiceImpl<DictMapper, Dict> implements Dic
             EasyExcel.read(file.getInputStream(), DictEeVo.class, new DictListener(baseMapper)).sheet().doRead();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String getDictName(String dictCode, String value) {
+        if (StringUtils.isBlank(dictCode)) {
+            //如果dictCode为空,根据value查询
+            QueryWrapper<Dict> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("value",value);
+            Dict dictByValue = baseMapper.selectOne(queryWrapper);
+            return dictByValue.getName();
+        }else {
+            //不为空 根据parentId,value查询
+            QueryWrapper<Dict> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("dict_code",dictCode);
+            Dict dictByDictCode = baseMapper.selectOne(queryWrapper);
+
+            // 查询该parent_id为此id
+            Dict finalDict = baseMapper.selectOne(new QueryWrapper<Dict>()
+                    .eq("parent_id", dictByDictCode.getId())
+                    .eq("value", value));
+            return finalDict.getName();
         }
     }
 
