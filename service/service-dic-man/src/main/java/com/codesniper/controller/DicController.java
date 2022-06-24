@@ -58,4 +58,10 @@ public class DicController {
         return dicService.getDictName("",value);
     }
 
+    @ApiOperation("查询所有子节点数据")
+    @GetMapping("/getByDictCode/{dictCode}")
+    public Result<List<Dict>> getByDictCode(@PathVariable String dictCode) {
+        List<Dict> dictList = dicService.getByDictCode(dictCode);
+        return Result.ok(dictList);
+    }
 }

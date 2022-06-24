@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients(basePackages = "com.codesniper")
+@EnableFeignClients
 public class ServiceHospApplication {
 
     public static void main(String[] args) {

@@ -56,7 +56,7 @@ public class HospitalServiceImpl implements HospitalService {
 
     @Override
     public Page<Hospital> getHospitalList(HospitalQueryVo hospitalQueryVo) {
-        PageRequest pageRequest = PageRequest.of(hospitalQueryVo.getPageNum(), hospitalQueryVo.getPageSize());
+        PageRequest pageRequest = PageRequest.of(hospitalQueryVo.getPageNum() -1, hospitalQueryVo.getPageSize());
 
         ExampleMatcher exampleMatcher = ExampleMatcher.matching()
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)

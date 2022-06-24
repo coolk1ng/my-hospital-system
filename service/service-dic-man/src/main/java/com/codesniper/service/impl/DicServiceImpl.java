@@ -69,6 +69,15 @@ public class DicServiceImpl extends ServiceImpl<DictMapper, Dict> implements Dic
     }
 
     @Override
+    public List<Dict> getByDictCode(String dictCode) {
+        // 根据dictCode获取对应Id
+        QueryWrapper<Dict> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("dict_code",dictCode);
+        Dict dict = baseMapper.selectOne(queryWrapper);
+        return this.getChildrenData(dict.getId());
+    }
+
+    @Override
     @CacheEvict(value = "dict", allEntries = true)
     public void importDictData(MultipartFile file) {
         try {

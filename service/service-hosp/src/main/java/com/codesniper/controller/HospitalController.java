@@ -31,4 +31,10 @@ public class HospitalController {
         Page<Hospital> hospitalPage = hospitalService.getHospitalList(hospitalQueryVo);
         return Result.ok(hospitalPage);
     }
+
+    @ApiOperation("修改医院状态")
+    @PostMapping("/updateHospitalStatus")
+    public Result<Boolean> updateHospitalStatus(@RequestBody Hospital hospital) {
+        return Result.ok();
+    }
 }

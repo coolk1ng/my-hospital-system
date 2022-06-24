@@ -44,4 +44,11 @@ public interface DicService extends IService<Dict> {
      * @return String
      */
     String getDictName(String dictCode, String value);
+
+    /** 
+     * 根据dictCode获取子节点数据
+     * @param dictCode 
+     * @return List<Dict>
+     */
+    List<Dict> getByDictCode(String dictCode);
 }
