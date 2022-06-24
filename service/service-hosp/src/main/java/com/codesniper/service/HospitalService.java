@@ -33,4 +33,13 @@ public interface HospitalService {
      * @return Page<Hospital>
      */
     Page<Hospital> getHospitalList(HospitalQueryVo hospitalQueryVo);
+
+    /**
+     * 修改医院状态
+     * @param hospital
+     * @return void
+     */
+    void updateHospitalStatus(Hospital hospital);
+
+    Map<String,Object> getHospitalDetail(String id);
 }

@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -52,6 +53,27 @@ public class HospitalServiceImpl implements HospitalService {
         hospital.setUpdateTime(new Date());
         hospital.setIsDeleted(0);
         hospitalRepository.save(hospital);
+    }
+
+    @Override
+    public void updateHospitalStatus(Hospital hospital) {
+        Hospital item = hospitalRepository.findById(hospital.getId()).get();
+        item.setStatus(hospital.getStatus());
+        item.setUpdateTime(new Date());
+        hospitalRepository.save(item);
+    }
+
+    @Override
+    public Map<String, Object> getHospitalDetail(String id) {
+        HashMap<String, Object> map = new HashMap<>();
+        Hospital hospital = this.setHospitalHosType(hospitalRepository.findById(id).get());
+        // 封装医院基本信息
+        map.put("hospital",hospital);
+        // 封装预约信息
+        map.put("bookingRule",hospital.getBookingRule());
+        // 不需要重复返回
+        hospital.setBookingRule(null);
+        return map;
     }
 
     @Override

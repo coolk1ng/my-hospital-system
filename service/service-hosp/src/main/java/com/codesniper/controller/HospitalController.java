@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * 医院信息Controller
  *
@@ -35,6 +37,13 @@ public class HospitalController {
     @ApiOperation("修改医院状态")
     @PostMapping("/updateHospitalStatus")
     public Result<Boolean> updateHospitalStatus(@RequestBody Hospital hospital) {
+        hospitalService.updateHospitalStatus(hospital);
         return Result.ok();
+    }
+
+    @ApiOperation("查询医院详情")
+    @GetMapping("/getHospitalDetail/{id}")
+    public Result<Map<String,Object>> getHospitalDetail(@PathVariable String id) {
+        return Result.ok(hospitalService.getHospitalDetail(id));
     }
 }
