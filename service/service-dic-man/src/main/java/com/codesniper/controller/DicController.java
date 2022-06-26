@@ -22,7 +22,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/cmn/dict")
 @Api(tags = "字典项")
-@CrossOrigin
 public class DicController {
 
     @Autowired

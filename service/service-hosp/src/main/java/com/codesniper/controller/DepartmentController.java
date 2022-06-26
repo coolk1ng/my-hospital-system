@@ -18,7 +18,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/admin/hosp/department")
-@CrossOrigin
 @Api(tags = "科室信息")
 public class DepartmentController {
 
