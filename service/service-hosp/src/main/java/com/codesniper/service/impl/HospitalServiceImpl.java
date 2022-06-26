@@ -107,6 +107,7 @@ public class HospitalServiceImpl implements HospitalService {
         return hospital;
     }
 
+
     @Override
     public Hospital getHospitalByHoscode(String hoscode) {
         return hospitalRepository.getHospitalByHoscode(hoscode);

@@ -4,6 +4,9 @@ import com.codesniper.yygh.model.hosp.Schedule;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
+import java.util.List;
+
 /**
  * 排班
  *
@@ -19,4 +22,13 @@ public interface ScheduleRepository extends MongoRepository<Schedule,String> {
      * @return Schedule
      */
     Schedule getScheduleByHoscodeAndHosScheduleId(String hoscode, String hosScheduleId);
+
+    /**
+     * 根据hoscode,depcode,workDate查询排班详情
+     * @param hoscode
+     * @param depcode
+     * @param toDate
+     * @return void
+     */
+    List<Schedule> findScheduleByHoscodeAndDepcodeAndWorkDate(String hoscode, String depcode, Date toDate);
 }

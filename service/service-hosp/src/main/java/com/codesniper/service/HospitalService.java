@@ -42,4 +42,5 @@ public interface HospitalService {
     void updateHospitalStatus(Hospital hospital);
 
     Map<String,Object> getHospitalDetail(String id);
+
 }

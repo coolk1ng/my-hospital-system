@@ -4,6 +4,7 @@ import com.codesniper.yygh.model.hosp.Schedule;
 import com.codesniper.yygh.vo.hosp.ScheduleQueryVo;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,4 +37,18 @@ public interface ScheduleService {
      * @return void
      */
     void remove(String hoscode, String hosScheduleId);
+
+    /** 
+     * 查询排班规则数据
+     * @param scheduleQueryVo 
+     * @return Map<String,Object>
+     */
+    Map<String, Object> getScheduleRule(ScheduleQueryVo scheduleQueryVo);
+
+    /** 
+     * 查询排班详情
+     * @param scheduleQueryVo 
+     * @return List<Schedule>
+     */
+    List<Schedule> getScheduleDetail(ScheduleQueryVo scheduleQueryVo);
 }
