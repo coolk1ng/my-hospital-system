@@ -4,6 +4,7 @@ import com.codesniper.yygh.model.hosp.Hospital;
 import com.codesniper.yygh.vo.hosp.HospitalQueryVo;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,6 +42,19 @@ public interface HospitalService {
      */
     void updateHospitalStatus(Hospital hospital);
 
+    /** 
+     * 查询医院详情
+     * @param id 
+     * @return Map<String,Object>
+     */
     Map<String,Object> getHospitalDetail(String id);
 
+    /** 
+     * 根据hosname查询
+     * @param hospitalQueryVo 
+     * @return List<Hospital>
+     */
+    List<Hospital> getHospitalByHosname(HospitalQueryVo hospitalQueryVo);
+
+    Map<String, Object> getScheduleDetailByHoscode(String hoscsode);
 }

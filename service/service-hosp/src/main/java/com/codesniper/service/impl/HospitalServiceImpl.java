@@ -6,6 +6,7 @@ import com.codesniper.repository.HospitalRepository;
 import com.codesniper.service.HospitalService;
 import com.codesniper.yygh.model.hosp.Hospital;
 import com.codesniper.yygh.vo.hosp.HospitalQueryVo;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,7 +47,7 @@ public class HospitalServiceImpl implements HospitalService {
         if (curHospital != null) {
             hospital.setStatus(curHospital.getStatus());
             hospital.setCreateTime(curHospital.getCreateTime());
-        }else {
+        } else {
             // 不存在,进行添加
             hospital.setStatus(0);
             hospital.setCreateTime(new Date());
@@ -68,9 +70,9 @@ public class HospitalServiceImpl implements HospitalService {
         HashMap<String, Object> map = new HashMap<>();
         Hospital hospital = this.setHospitalHosType(hospitalRepository.findById(id).get());
         // 封装医院基本信息
-        map.put("hospital",hospital);
+        map.put("hospital", hospital);
         // 封装预约信息
-        map.put("bookingRule",hospital.getBookingRule());
+        map.put("bookingRule", hospital.getBookingRule());
         // 不需要重复返回
         hospital.setBookingRule(null);
         return map;
@@ -78,16 +80,16 @@ public class HospitalServiceImpl implements HospitalService {
 
     @Override
     public Page<Hospital> getHospitalList(HospitalQueryVo hospitalQueryVo) {
-        PageRequest pageRequest = PageRequest.of(hospitalQueryVo.getPageNum() -1, hospitalQueryVo.getPageSize());
+        PageRequest pageRequest = PageRequest.of(hospitalQueryVo.getPageNum() - 1, hospitalQueryVo.getPageSize());
 
         ExampleMatcher exampleMatcher = ExampleMatcher.matching()
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
                 .withIgnoreCase(true);
 
         Hospital hospital = new Hospital();
-        BeanUtils.copyProperties(hospitalQueryVo,hospital);
+        BeanUtils.copyProperties(hospitalQueryVo, hospital);
 
-        Example<Hospital> example= Example.of(hospital, exampleMatcher);
+        Example<Hospital> example = Example.of(hospital, exampleMatcher);
         Page<Hospital> pages = hospitalRepository.findAll(example, pageRequest);
 
         pages.getContent().forEach(this::setHospitalHosType);
@@ -102,14 +104,33 @@ public class HospitalServiceImpl implements HospitalService {
         String districtCode = dictFeignClient.getDictNameByValue(hospital.getDistrictCode());
 
         // 放到map中
-        hospital.getParam().put("hostype",hostype);
-        hospital.getParam().put("fullAddress",provinceCode+cityCode+districtCode);
+        if (StringUtils.isNotBlank(hostype)) {
+            hospital.getParam().put("hostype", hostype);
+        }
+        if (StringUtils.isNotBlank(provinceCode + cityCode + districtCode)) {
+            hospital.getParam().put("fullAddress", provinceCode + cityCode + districtCode);
+        }
         return hospital;
     }
 
+    @Override
+    public List<Hospital> getHospitalByHosname(HospitalQueryVo hospitalQueryVo) {
+        return hospitalRepository.getHospitalByHosnameLike(hospitalQueryVo.getHosname());
+    }
 
     @Override
     public Hospital getHospitalByHoscode(String hoscode) {
         return hospitalRepository.getHospitalByHoscode(hoscode);
+    }
+
+    @Override
+    public Map<String, Object> getScheduleDetailByHoscode(String hoscsode) {
+        HashMap<String, Object> map = new HashMap<>();
+
+        Hospital hospital = this.setHospitalHosType(this.getHospitalByHoscode(hoscsode));
+
+        map.put("hospital",hospital);
+        map.put("bookingRule",hospital.getBookingRule());
+        return map;
     }
 }
