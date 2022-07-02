@@ -1,0 +1,31 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: service-gateway
+  cloud:
+# nacos服务地址
+    nacos:
+      server-addr: 110.40.236.91:8848
+    gateway:
+# 使用服务发现路由
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: service-hosp # 路由id
+          uri: lb://service-hosp # 路由uri
+          predicates:           # 路由断言
+            - Path=/*/hosp/**
+        - id: service-dic-man
+          uri: lb://service-dic-man
+          predicates:
+            - Path=/*/cmn/**
+        - id: service-user
+          uri: lb://service-user
+          predicates:
+            - Path=/*/user/**
+        - id: service-sms
+          uri: lb://service-sms
+          predicates:
+            - Path=/*/sms/**
