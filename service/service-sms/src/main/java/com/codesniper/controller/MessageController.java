@@ -35,9 +35,9 @@ public class MessageController {
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
 
-    @GetMapping("/getCode/{phone}")
+    @GetMapping("/send/{phone}")
     @ApiOperation("发送验证码")
-    public Result<String> getCode(@PathVariable String phone) throws Exception {
+    public Result<String> sendCode(@PathVariable String phone) throws Exception {
         // 从redis获取验证码
         String code = redisTemplate.opsForValue().get("phone");
 

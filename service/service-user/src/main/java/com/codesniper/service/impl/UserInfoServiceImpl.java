@@ -44,8 +44,8 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         }
 
         // 查询redis校验验证码是否一致
-        String redisPhone = redisTemplate.opsForValue().get(phone);
-        if (!StringUtils.equals(phone,redisPhone)) {
+        String redisPhoneCode = redisTemplate.opsForValue().get(phone);
+        if (!StringUtils.equals(code,redisPhoneCode)) {
             throw new MyException(ResultCodeEnum.CODE_ERROR);
         }
 
