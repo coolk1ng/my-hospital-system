@@ -29,3 +29,7 @@ spring:
           uri: lb://service-sms
           predicates:
             - Path=/*/sms/**
+        - id: service-user
+          uri: lb://service-user
+          predicates:
+            - Path=/*/ucenter/**

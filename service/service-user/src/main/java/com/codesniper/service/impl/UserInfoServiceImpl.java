@@ -49,17 +49,29 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             throw new MyException(ResultCodeEnum.CODE_ERROR);
         }
 
-        // 查询是否存在该用户
-        QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
-        wrapper.eq("phone", phone);
-        UserInfo userInfo = baseMapper.selectOne(wrapper);
-        if (userInfo == null) {
-            // 第一次登录,添加到数据库
-            userInfo = new UserInfo();
-            userInfo.setName("");
-            userInfo.setPhone(phone);
-            userInfo.setStatus(1);
-            baseMapper.insert(userInfo);
+        // 绑定手机号
+        UserInfo userInfo = null;
+        if (StringUtils.isNotEmpty(loginVo.getOpenid())) {
+            userInfo = this.getUserInfoByOpenId(loginVo.getOpenid());
+            baseMapper.updateById(userInfo);
+        }else {
+            throw new MyException(ResultCodeEnum.DATA_ERROR);
+        }
+
+        // userInfo为空,正常进行手机登录
+        if (userInfo==null) {
+            // 查询是否存在该用户
+            QueryWrapper<UserInfo> wrapper = new QueryWrapper<>();
+            wrapper.eq("phone", phone);
+            userInfo = baseMapper.selectOne(wrapper);
+            if (userInfo == null) {
+                // 第一次登录,添加到数据库
+                userInfo = new UserInfo();
+                userInfo.setName("");
+                userInfo.setPhone(phone);
+                userInfo.setStatus(1);
+                baseMapper.insert(userInfo);
+            }
         }
 
         // 校验是否禁用
@@ -83,5 +95,12 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         map.put("name",name);
         map.put("token",token);
         return map;
+    }
+
+    @Override
+    public UserInfo getUserInfoByOpenId(String openId) {
+        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("openid",openId);
+        return baseMapper.selectOne(queryWrapper);
     }
 }
