@@ -26,5 +26,5 @@ spring:
       server-addr: 110.40.236.91:8848
 aliyun:
   sms:
-    accessKeyId: LTAI5tGBUEKyGJM7uWy3BC5t
-    accessKeySecret: BhYiXb8OqvwwbN2mHsDabhx5EikhhB
+    accessKeyId: 111
+    accessKeySecret: 111
