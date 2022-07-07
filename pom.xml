@@ -35,7 +35,7 @@
         <httpclient.version>4.5.1</httpclient.version>
         <easyexcel.version>2.2.0-beta2</easyexcel.version>
         <aliyun.version>4.1.1</aliyun.version>
-        <oss.version>3.9.1</oss.version>
+        <oss.version>3.10.2</oss.version>
         <jodatime.version>2.10.1</jodatime.version>
     </properties>
 
