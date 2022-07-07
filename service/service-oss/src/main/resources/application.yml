@@ -1,0 +1,17 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: service-oss
+  cloud:
+    nacos:
+      server-addr: 110.40.236.91:8848
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+aliyun:
+  oss:
+    endpoint: xxxx
+    accessKeyId: xxx
+    accessKeySecret: xxx
+    bucketName: xxx
