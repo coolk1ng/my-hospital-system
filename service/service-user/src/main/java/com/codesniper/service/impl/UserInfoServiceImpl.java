@@ -7,12 +7,15 @@ import com.codesniper.common.helper.JwtHelper;
 import com.codesniper.common.result.ResultCodeEnum;
 import com.codesniper.mapper.UserInfoMapper;
 import com.codesniper.service.UserInfoService;
+import com.codesniper.yygh.enums.AuthStatusEnum;
 import com.codesniper.yygh.model.user.UserInfo;
 import com.codesniper.yygh.vo.user.LoginVo;
+import com.codesniper.yygh.vo.user.UserAuthVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -102,5 +105,21 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("openid",openId);
         return baseMapper.selectOne(queryWrapper);
+    }
+
+    @Override
+    @Transactional
+    public Boolean userAuth(Long currentUserId, UserAuthVo userAuthVo) {
+        // 根据userId查询用户信息
+        UserInfo userInfo = baseMapper.selectById(currentUserId);
+        // 设置认证信息
+        userInfo.setName(userAuthVo.getName());
+        userInfo.setCertificatesType(userAuthVo.getCertificatesType());
+        userInfo.setCertificatesNo(userAuthVo.getCertificatesNo());
+        userInfo.setCertificatesUrl(userAuthVo.getCertificatesUrl());
+        userInfo.setAuthStatus(AuthStatusEnum.AUTH_RUN.getStatus());
+        // 更新信息
+        int i = baseMapper.updateById(userInfo);
+        return i==1;
     }
 }
