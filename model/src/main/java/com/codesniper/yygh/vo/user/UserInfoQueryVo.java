@@ -1,5 +1,6 @@
 package com.codesniper.yygh.vo.user;
 
+import com.codesniper.yygh.model.base.PageEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -11,7 +12,7 @@ import lombok.Data;
 
 @Data
 @ApiModel(description="会员搜索对象")
-public class UserInfoQueryVo {
+public class UserInfoQueryVo extends PageEntity {
 
     @ApiModelProperty(value = "关键字")
     private String keyword;
@@ -27,5 +28,7 @@ public class UserInfoQueryVo {
 
     @ApiModelProperty(value = "创建时间")
     private String createTimeEnd;
+
+    private Long userId;
 
 }

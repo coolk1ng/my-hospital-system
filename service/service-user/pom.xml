@@ -33,6 +33,12 @@
             <artifactId>service</artifactId>
             <version>1.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.codesniper</groupId>
+            <artifactId>service-dict-client</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
