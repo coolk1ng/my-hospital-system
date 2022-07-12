@@ -57,4 +57,5 @@ public interface HospitalService {
     List<Hospital> getHospitalByHosname(HospitalQueryVo hospitalQueryVo);
 
     Map<String, Object> getScheduleDetailByHoscode(String hoscsode);
+
 }

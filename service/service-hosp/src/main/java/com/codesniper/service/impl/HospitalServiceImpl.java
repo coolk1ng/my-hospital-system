@@ -133,4 +133,5 @@ public class HospitalServiceImpl implements HospitalService {
         map.put("bookingRule",hospital.getBookingRule());
         return map;
     }
+
 }
