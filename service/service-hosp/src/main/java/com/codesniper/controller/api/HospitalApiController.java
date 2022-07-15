@@ -1,16 +1,17 @@
 package com.codesniper.controller.api;
 
-import com.alibaba.fastjson.JSON;
 import com.codesniper.common.result.Result;
 import com.codesniper.service.DepartmentService;
 import com.codesniper.service.HospitalService;
 import com.codesniper.service.ScheduleService;
 import com.codesniper.yygh.model.hosp.Hospital;
+import com.codesniper.yygh.model.hosp.Schedule;
 import com.codesniper.yygh.vo.hosp.DepartmentVo;
 import com.codesniper.yygh.vo.hosp.HospitalQueryVo;
 import com.codesniper.yygh.vo.hosp.ScheduleQueryVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -64,10 +65,29 @@ public class HospitalApiController {
         return Result.ok(hospitalService.getScheduleDetailByHoscode(hoscode));
     }
 
-    @PostMapping("/getBookingScheduleRule")
-    @ApiOperation("获取可预约的排班数据")
-    public Result<Map<String,Object>> getBookingScheduleRule(@RequestBody ScheduleQueryVo scheduleQueryVo) {
-        log.info(JSON.toJSONString(scheduleQueryVo));
-        return Result.ok(scheduleService.getBookingScheduleRule(scheduleQueryVo));
+    @ApiOperation(value = "获取可预约排班数据")
+    @GetMapping("/auth/getBookingScheduleRule/{page}/{limit}/{hoscode}/{depcode}")
+    public Result<Map<String, Object>> getBookingSchedule(@PathVariable Integer page,
+                                                          @PathVariable Integer limit,
+                                                          @PathVariable String hoscode,
+                                                          @PathVariable String depcode) {
+        return Result.ok(scheduleService.getBookingScheduleRule(page, limit, hoscode, depcode));
     }
+
+    @ApiOperation(value = "获取排班数据")
+    @GetMapping("auth/findScheduleList/{hoscode}/{depcode}/{workDate}")
+    public Result<List<Schedule>> findScheduleList(
+            @ApiParam(name = "hoscode", value = "医院code", required = true)
+            @PathVariable String hoscode,
+            @ApiParam(name = "depcode", value = "科室code", required = true)
+            @PathVariable String depcode,
+            @ApiParam(name = "workDate", value = "排班日期", required = true)
+            @PathVariable String workDate) {
+        ScheduleQueryVo scheduleQueryVo = new ScheduleQueryVo();
+        scheduleQueryVo.setHoscode(hoscode);
+        scheduleQueryVo.setDepcode(depcode);
+        scheduleQueryVo.setWorkDate(workDate);
+        return Result.ok(scheduleService.getScheduleDetail(scheduleQueryVo));
+    }
+
 }

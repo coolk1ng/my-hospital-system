@@ -27,8 +27,8 @@ public interface ScheduleRepository extends MongoRepository<Schedule,String> {
      * 根据hoscode,depcode,workDate查询排班详情
      * @param hoscode
      * @param depcode
-     * @param toDate
+     * @param workDate
      * @return void
      */
-    List<Schedule> findScheduleByHoscodeAndDepcodeAndWorkDate(String hoscode, String depcode, Date toDate);
+    List<Schedule> findScheduleByHoscodeAndDepcodeAndWorkDate(String hoscode, String depcode, Date workDate);
 }

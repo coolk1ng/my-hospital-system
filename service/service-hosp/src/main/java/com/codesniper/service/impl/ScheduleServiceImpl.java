@@ -28,6 +28,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -155,81 +157,84 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public Map<String, Object> getBookingScheduleRule(ScheduleQueryVo scheduleQueryVo) {
-        HashMap<String, Object> map = new HashMap<>();
-        // 获取预约规则
-        Hospital hospital = hospitalService.getHospitalByHoscode(scheduleQueryVo.getHoscode());
-        if (hospital == null) {
+    public Map<String, Object> getBookingScheduleRule(int page, int limit, String hoscode, String depcode) {
+        Map<String, Object> result = new HashMap<>();
+
+        //获取预约规则
+        Hospital hospital = hospitalService.getHospitalByHoscode(hoscode);
+        if (null == hospital) {
             throw new MyException(ResultCodeEnum.DATA_ERROR);
         }
         BookingRule bookingRule = hospital.getBookingRule();
 
-        IPage<Date> page = this.getDateList(scheduleQueryVo, bookingRule);
-        // 当前可预约日期
-        List<Date> list = page.getRecords();
-
-        // 获取可预约日期里面科室的剩余预约数
-        Criteria criteria = Criteria.where("hoscode").is(scheduleQueryVo.getHoscode())
-                .and("depcode").is(scheduleQueryVo.getDepcode())
-                .and("wordDate").in(list);
-        Aggregation aggregation = Aggregation.newAggregation(
+        //获取可预约日期分页数据
+        IPage<Date> iPage = this.getListDate(page, limit, bookingRule);
+        //当前页可预约日期
+        List<Date> dateList = iPage.getRecords();
+        //获取可预约日期科室剩余预约数
+        Criteria criteria = Criteria.where("hoscode").is(hoscode).and("depcode").is(depcode).and("workDate").in(dateList);
+        Aggregation agg = Aggregation.newAggregation(
                 Aggregation.match(criteria),
-                Aggregation.group("workDate").first("workDate").as("workDate")
+                Aggregation.group("workDate")//分组字段
+                        .first("workDate").as("workDate")
                         .count().as("docCount")
                         .sum("availableNumber").as("availableNumber")
                         .sum("reservedNumber").as("reservedNumber")
-
         );
-        AggregationResults<BookingScheduleRuleVo> aggregate = mongoTemplate.aggregate(aggregation, Schedule.class, BookingScheduleRuleVo.class);
-        List<BookingScheduleRuleVo> results = aggregate.getMappedResults();
+        AggregationResults<BookingScheduleRuleVo> aggregationResults = mongoTemplate.aggregate(agg, Schedule.class, BookingScheduleRuleVo.class);
+        List<BookingScheduleRuleVo> scheduleVoList = aggregationResults.getMappedResults();
+        //获取科室剩余预约数
 
-        // 合并数据
-        Map<Date, BookingScheduleRuleVo> scheduleMap = new HashMap<>();
-        if (!CollectionUtils.isEmpty(results)) {
-            scheduleMap = results.stream().collect(Collectors.toMap(BookingScheduleRuleVo::getWorkDate, v -> v));
+        //合并数据 将统计数据ScheduleVo根据“安排日期”合并到BookingRuleVo
+        Map<Date, BookingScheduleRuleVo> scheduleVoMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(scheduleVoList)) {
+            scheduleVoMap = scheduleVoList.stream().collect(Collectors.toMap(BookingScheduleRuleVo::getWorkDate, BookingScheduleRuleVo -> BookingScheduleRuleVo));
         }
+        //获取可预约排班规则
+        List<BookingScheduleRuleVo> bookingScheduleRuleVoList = new ArrayList<>();
+        for (int i = 0, len = dateList.size(); i < len; i++) {
+            Date date = dateList.get(i);
 
-        // 获取可预约排班规则
-        ArrayList<BookingScheduleRuleVo> bookingScheduleRuleList = new ArrayList<>();
-        for (Date date : list) {
-            BookingScheduleRuleVo scheduleRuleVo = scheduleMap.get(date);
-            if (scheduleRuleVo == null) {
-                scheduleRuleVo = new BookingScheduleRuleVo();
-                // 就诊医生人数
-                scheduleRuleVo.setDocCount(0);
-                // 设置无号
-                scheduleRuleVo.setAvailableNumber(-1);
+            BookingScheduleRuleVo bookingScheduleRuleVo = scheduleVoMap.get(date);
+            if (null == bookingScheduleRuleVo) { // 说明当天没有排班医生
+                bookingScheduleRuleVo = new BookingScheduleRuleVo();
+                //就诊医生人数
+                bookingScheduleRuleVo.setDocCount(0);
+                //科室剩余预约数  -1表示无号
+                bookingScheduleRuleVo.setAvailableNumber(-1);
             }
-            scheduleRuleVo.setWorkDate(date);
-            scheduleRuleVo.setWorkDateMd(date);
-            // 当前日期对应的星期
+            bookingScheduleRuleVo.setWorkDate(date);
+            bookingScheduleRuleVo.setWorkDateMd(date);
+            //计算当前预约日期为周几
             String dayOfWeek = this.getDayOfWeek(new DateTime(date));
-            scheduleRuleVo.setDayOfWeek(dayOfWeek);
-            // 最后一条记录为即将预约,状态 0: 正常,1: 即将放号,-1: 当天停止挂号
-            if (list.indexOf(date) == list.size() - 1 && scheduleQueryVo.getPageNum() == page.getPages()) {
-                scheduleRuleVo.setStatus(1);
-            }else {
-                scheduleRuleVo.setStatus(0);
+            bookingScheduleRuleVo.setDayOfWeek(dayOfWeek);
+
+            //最后一页最后一条记录为即将预约   状态 0：正常 1：即将放号 -1：当天已停止挂号
+            if (i == len - 1 && page == iPage.getPages()) {
+                bookingScheduleRuleVo.setStatus(1);
+            } else {
+                bookingScheduleRuleVo.setStatus(0);
             }
-            // 当天过了停号时间,不能预约
-            if (list.indexOf(date) == 0 && scheduleQueryVo.getPageNum() == 1) {
+            //当天预约如果过了停号时间， 不能预约
+            if (i == 0 && page == 1) {
                 DateTime stopTime = this.getDateTime(new Date(), bookingRule.getStopTime());
                 if (stopTime.isBeforeNow()) {
-                    scheduleRuleVo.setStatus(-1);
+                    //停止预约
+                    bookingScheduleRuleVo.setStatus(-1);
                 }
             }
-            bookingScheduleRuleList.add(scheduleRuleVo);
+            bookingScheduleRuleVoList.add(bookingScheduleRuleVo);
         }
 
         //可预约日期规则数据
-        map.put("bookingScheduleRuleList", bookingScheduleRuleList);
-        map.put("total", page.getTotal());
+        result.put("bookingScheduleList", bookingScheduleRuleVoList);
+        result.put("total", iPage.getTotal());
         //其他基础数据
         Map<String, String> baseMap = new HashMap<>();
         //医院名称
-        baseMap.put("hosname", hospitalService.getHospitalByHoscode(scheduleQueryVo.getHoscode()).getHosname());
+        baseMap.put("hosname", hospitalService.getHospitalByHoscode(hoscode).getHosname());
         //科室
-        Department department =departmentService.getDepartmentByHoscodeAndDepcode(scheduleQueryVo.getHoscode(), scheduleQueryVo.getDepcode());
+        Department department = departmentService.getDepartmentByHoscodeAndDepcode(hoscode, depcode);
         //大科室名称
         baseMap.put("bigname", department.getBigname());
         //科室名称
@@ -240,39 +245,38 @@ public class ScheduleServiceImpl implements ScheduleService {
         baseMap.put("releaseTime", bookingRule.getReleaseTime());
         //停号时间
         baseMap.put("stopTime", bookingRule.getStopTime());
-        map.put("baseMap", baseMap);
-        return map;
+        result.put("baseMap", baseMap);
+        return result;
     }
 
-    private IPage<Date> getDateList(ScheduleQueryVo scheduleQueryVo, BookingRule bookingRule) {
-        Integer pageNum = scheduleQueryVo.getPageNum();
-        Integer pageSize = scheduleQueryVo.getPageSize();
-        // 获取当天放号时间
+    /**
+     * 获取可预约日期分页数据
+     */
+    private IPage<Date> getListDate(int page, int limit, BookingRule bookingRule) {
+        //当天放号时间
         DateTime releaseTime = this.getDateTime(new Date(), bookingRule.getReleaseTime());
-        // 获取预约周期
-        Integer cycle = bookingRule.getCycle();
-        if (releaseTime.isBeforeNow()) {
-            cycle++;
-        }
-
-        // 获取可预约所有日期
-        ArrayList<Date> list = new ArrayList<>();
+        //预约周期
+        int cycle = bookingRule.getCycle();
+        //如果当天放号时间已过，则预约周期后一天为即将放号时间，周期加1
+        if (releaseTime.isBeforeNow()) cycle += 1;
+        //可预约所有日期，最后一天显示即将放号倒计时
+        List<Date> dateList = new ArrayList<>();
         for (int i = 0; i < cycle; i++) {
+        //计算当前预约日期
             DateTime curDateTime = new DateTime().plusDays(i);
-            String dateTimeStr = curDateTime.toString("yyyy-MM-dd");
-            list.add(new DateTime(dateTimeStr).toDate());
+            String dateString = curDateTime.toString("yyyy-MM-dd");
+            dateList.add(new DateTime(dateString).toDate());
         }
+        //日期分页，由于预约周期不一样，页面一排最多显示7天数据，多了就要分页显示
         List<Date> pageDateList = new ArrayList<>();
-
-        int start = (pageNum-1)*pageSize;
-        int end = (pageNum-1)*pageSize+pageSize;
-        if(end >list.size()) end = list.size();
+        int start = (page - 1) * limit;
+        int end = (page - 1) * limit + limit;
+        if (end > dateList.size()) end = dateList.size();
         for (int i = start; i < end; i++) {
-            pageDateList.add(list.get(i));
+            pageDateList.add(dateList.get(i));
         }
-        IPage<Date> iPage = new com.baomidou.mybatisplus.extension.plugins.pagination.Page(pageNum, 7, list.size());
+        IPage<Date> iPage = new com.baomidou.mybatisplus.extension.plugins.pagination.Page(page, 7, dateList.size());
         iPage.setRecords(pageDateList);
-
         return iPage;
     }
 
@@ -323,7 +327,19 @@ public class ScheduleServiceImpl implements ScheduleService {
         return dayOfWeek;
     }
 
+    private String getIsoDate(Date date) {
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat dft = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        dft.setTimeZone(tz);
+        return dft.format(date);
+    }
+
     public static void main(String[] args) {
-        System.out.println(new Date());
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat dft = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        dft.setTimeZone(tz);
+        String isoDate = dft.format(new DateTime("2022-7-14").toDate());
+        System.out.println(isoDate);
+        System.out.println(new DateTime("2022-07-14T05:00:00.000Zi").toDate());
     }
 }

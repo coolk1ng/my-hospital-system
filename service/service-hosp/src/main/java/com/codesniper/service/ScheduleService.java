@@ -52,10 +52,5 @@ public interface ScheduleService {
      */
     List<Schedule> getScheduleDetail(ScheduleQueryVo scheduleQueryVo);
 
-    /**
-     * 获取可预约的排班信息
-     * @param scheduleQueryVo
-     * @return Map<String,Object>
-     */
-    Map<String,Object> getBookingScheduleRule(ScheduleQueryVo scheduleQueryVo);
+    Map<String,Object> getBookingScheduleRule(int page, int limit, String hoscode, String depcode);
 }
