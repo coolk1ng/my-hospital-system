@@ -53,4 +53,11 @@ public interface ScheduleService {
     List<Schedule> getScheduleDetail(ScheduleQueryVo scheduleQueryVo);
 
     Map<String,Object> getBookingScheduleRule(int page, int limit, String hoscode, String depcode);
+
+    /**
+     * 根据排班id查询排班数据
+     * @param scheduleId
+     * @return Schedule
+     */
+    Schedule getScheduleByScheduleId(String scheduleId);
 }

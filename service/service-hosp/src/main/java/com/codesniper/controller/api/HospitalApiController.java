@@ -90,4 +90,10 @@ public class HospitalApiController {
         return Result.ok(scheduleService.getScheduleDetail(scheduleQueryVo));
     }
 
+    @ApiOperation("根据排班id获取排班数据")
+    @GetMapping("/auth/getScheduleByScheduleId/{scheduleId}")
+    public Result<Schedule> getScheduleByScheduleId(@PathVariable String scheduleId) {
+        return Result.ok(scheduleService.getScheduleByScheduleId(scheduleId));
+    }
+
 }

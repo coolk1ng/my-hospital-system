@@ -280,6 +280,16 @@ public class ScheduleServiceImpl implements ScheduleService {
         return iPage;
     }
 
+    @Override
+    public Schedule getScheduleByScheduleId(String scheduleId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId).get();
+        // 设置医院名称
+        schedule.getParam().put("hosname",hospitalService.getHospitalByHoscode(schedule.getHoscode()).getHosname());
+        schedule.getParam().put("depname",departmentService.getDepartmentByHoscodeAndDepcode(schedule.getHoscode(),schedule.getDepcode()).getDepname());
+        schedule.getParam().put("dayOfWeek",this.getDayOfWeek(new DateTime(schedule.getWorkDate())));
+        return schedule;
+    }
+
     /**
      * Date(yyyy-MM-dd)日期转成DateTime
      *
