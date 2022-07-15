@@ -1,0 +1,44 @@
+server:
+  port: 8087
+spring:
+  cloud:
+    nacos:
+      server-addr: 110.40.236.91:8848
+  application:
+    name: service-order
+  profiles:
+    active: dev
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://110.40.236.91:3306/yygh_order?serverTimezone=Asia/Shanghai&useUnicode=true&useSSL=false&characterEncoding=utf-8
+    username: yygh_order
+    password: pwMhN6LF7DWKzxeT
+  # 返回json全局时间格式
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  data:
+    # mongodb
+    mongodb:
+      uri: mongodb://110.40.236.91:27017/yygh_hosp
+      auto-index-creation: false
+  rabbitmq:
+    host: 110.40.236.91
+    port: 5672
+    username: codesniper
+    password: gongxiwu
+# 分页配置
+pagehelper:
+  helperDialect: mysql
+  supportMethodsArguments: true
+# mybatis-plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: 'null'
+  mapper-locations: classpath:mapper/**/*.xml
+  check-config-location: true
+logging:
+  level:
+    com.codesniper: debug
