@@ -2,8 +2,10 @@ package com.codesniper.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.codesniper.common.exception.MyException;
 import com.codesniper.common.result.ResultCodeEnum;
+import com.codesniper.mapper.ScheduleMapper;
 import com.codesniper.repository.ScheduleRepository;
 import com.codesniper.service.DepartmentService;
 import com.codesniper.service.HospitalService;
@@ -13,6 +15,7 @@ import com.codesniper.yygh.model.hosp.Department;
 import com.codesniper.yygh.model.hosp.Hospital;
 import com.codesniper.yygh.model.hosp.Schedule;
 import com.codesniper.yygh.vo.hosp.BookingScheduleRuleVo;
+import com.codesniper.yygh.vo.hosp.ScheduleOrderVo;
 import com.codesniper.yygh.vo.hosp.ScheduleQueryVo;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -40,7 +43,7 @@ import java.util.stream.Collectors;
  * @since 2022/6/22 16:34
  */
 @Service("ScheduleService")
-public class ScheduleServiceImpl implements ScheduleService {
+public class ScheduleServiceImpl extends ServiceImpl<ScheduleMapper, Schedule> implements ScheduleService {
 
     @Autowired
     private ScheduleRepository scheduleRepository;
@@ -262,7 +265,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         //可预约所有日期，最后一天显示即将放号倒计时
         List<Date> dateList = new ArrayList<>();
         for (int i = 0; i < cycle; i++) {
-        //计算当前预约日期
+            //计算当前预约日期
             DateTime curDateTime = new DateTime().plusDays(i);
             String dateString = curDateTime.toString("yyyy-MM-dd");
             dateList.add(new DateTime(dateString).toDate());
@@ -281,13 +284,62 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public Schedule getScheduleByScheduleId(String scheduleId) {
+    public Schedule getScheduleByHosScheduleId(String scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId).get();
         // 设置医院名称
-        schedule.getParam().put("hosname",hospitalService.getHospitalByHoscode(schedule.getHoscode()).getHosname());
-        schedule.getParam().put("depname",departmentService.getDepartmentByHoscodeAndDepcode(schedule.getHoscode(),schedule.getDepcode()).getDepname());
-        schedule.getParam().put("dayOfWeek",this.getDayOfWeek(new DateTime(schedule.getWorkDate())));
+        schedule.getParam().put("hosname", hospitalService.getHospitalByHoscode(schedule.getHoscode()).getHosname());
+        schedule.getParam().put("depname", departmentService.getDepartmentByHoscodeAndDepcode(schedule.getHoscode(), schedule.getDepcode()).getDepname());
+        schedule.getParam().put("dayOfWeek", this.getDayOfWeek(new DateTime(schedule.getWorkDate())));
         return schedule;
+    }
+
+    @Override
+    public ScheduleOrderVo getScheduleOrder(String scheduleId) {
+        ScheduleOrderVo scheduleOrderVo = new ScheduleOrderVo();
+        Schedule schedule = scheduleRepository.findById(scheduleId).get();
+        Hospital hospital = hospitalService.getHospitalByHoscode(schedule.getHoscode());
+        if (hospital==null) {
+            throw new MyException(ResultCodeEnum.PARAM_ERROR);
+        }
+        BookingRule bookingRule = hospital.getBookingRule();
+        if (bookingRule==null) {
+            throw new MyException(ResultCodeEnum.PARAM_ERROR);
+        }
+
+        scheduleOrderVo.setHoscode(schedule.getHoscode());
+        scheduleOrderVo.setHosname(hospital.getHosname());
+        scheduleOrderVo.setDepcode(schedule.getDepcode());
+        scheduleOrderVo.setDepname(departmentService.getDepartmentByHoscodeAndDepcode(schedule.getHoscode(), schedule.getDepcode()).getDepname());
+        scheduleOrderVo.setHosScheduleId(schedule.getHosScheduleId());
+        scheduleOrderVo.setAvailableNumber(schedule.getAvailableNumber());
+        scheduleOrderVo.setTitle(schedule.getTitle());
+        scheduleOrderVo.setReserveDate(schedule.getWorkDate());
+        scheduleOrderVo.setReserveTime(schedule.getWorkTime());
+        scheduleOrderVo.setAmount(schedule.getAmount());
+
+        //退号截止天数（如：就诊前一天为-1，当天为0）
+        int quitDay = bookingRule.getQuitDay();
+        DateTime quitTime = this.getDateTime(new DateTime(schedule.getWorkDate()).plusDays(quitDay).toDate(), bookingRule.getQuitTime());
+        scheduleOrderVo.setQuitTime(quitTime.toDate());
+
+        //预约开始时间
+        DateTime startTime = this.getDateTime(new Date(), bookingRule.getReleaseTime());
+        scheduleOrderVo.setStartTime(startTime.toDate());
+
+        //预约截止时间
+        DateTime endTime = this.getDateTime(new DateTime().plusDays(bookingRule.getCycle()).toDate(), bookingRule.getStopTime());
+        scheduleOrderVo.setEndTime(endTime.toDate());
+
+        //当天停止挂号时间
+        DateTime stopTime = this.getDateTime(new Date(), bookingRule.getStopTime());
+        scheduleOrderVo.setStartTime(startTime.toDate());
+        return scheduleOrderVo;
+    }
+
+    @Override
+    public void update(Schedule schedule) {
+        schedule.setUpdateTime(new Date());
+        scheduleRepository.save(schedule);
     }
 
     /**

@@ -49,7 +49,7 @@ public class MessageController {
         code = Math.round((Math.random() + 1) * 1000) + "";
 
         // 发送短信
-        Boolean isSend = messageService.sendMessage(phone, code, accessKeyId, accessKeySecret);
+        Boolean isSend = messageService.sendMessage(phone, code);
         if (isSend) {
             redisTemplate.opsForValue().set(phone,code,2, TimeUnit.MINUTES);
             return Result.ok("发送短信成功");

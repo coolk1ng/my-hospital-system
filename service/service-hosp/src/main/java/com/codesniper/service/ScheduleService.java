@@ -1,6 +1,8 @@
 package com.codesniper.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.codesniper.yygh.model.hosp.Schedule;
+import com.codesniper.yygh.vo.hosp.ScheduleOrderVo;
 import com.codesniper.yygh.vo.hosp.ScheduleQueryVo;
 import org.springframework.data.domain.Page;
 
@@ -13,7 +15,7 @@ import java.util.Map;
  * @author CodeSniper
  * @since 2022/6/22 16:34
  */
-public interface ScheduleService {
+public interface ScheduleService extends IService<Schedule> {
     /** 
      * 上传排班信息
      * @param map 
@@ -59,5 +61,19 @@ public interface ScheduleService {
      * @param scheduleId
      * @return Schedule
      */
-    Schedule getScheduleByScheduleId(String scheduleId);
+    Schedule getScheduleByHosScheduleId(String scheduleId);
+
+    /**
+     * 根据排班id查询预约下单信息
+     * @param scheduleId
+     * @return ScheduleOrderVo
+     */
+    ScheduleOrderVo getScheduleOrder(String scheduleId);
+
+    /** 
+     * 更新mq排班信息
+     * @param schedule 
+     * @return void
+     */
+    void update(Schedule schedule);
 }

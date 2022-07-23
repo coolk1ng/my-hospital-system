@@ -9,6 +9,7 @@ import com.codesniper.yygh.enums.DictEnum;
 import com.codesniper.yygh.model.user.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +28,9 @@ public class PatientServiceImpl extends ServiceImpl<PatientMapper, Patient> impl
     @Autowired
     private DictFeignClient dictFeignClient;
 
+    @Autowired
+    private PatientService patientService;
+
     @Override
     public List<Patient> getPatientList(Long userId) {
         QueryWrapper<Patient> queryWrapper = new QueryWrapper<>();
@@ -39,8 +43,27 @@ public class PatientServiceImpl extends ServiceImpl<PatientMapper, Patient> impl
     }
 
     @Override
+    @Transactional
     public Patient getPatientById(Long id) {
-        return this.packageData(baseMapper.selectById(id));
+
+        Patient patient = baseMapper.selectById(id);
+        // 证件类型
+        String certificatesType = dictFeignClient.getDictName(DictEnum.CERTIFICATES_TYPE.getDictCode(), patient.getCertificatesType());
+        // 联系人证件类型
+        String contactsCertificatesType = dictFeignClient.getDictName(DictEnum.CERTIFICATES_TYPE.getDictCode(), patient.getContactsCertificatesType());
+        // 省
+        String province = dictFeignClient.getDictNameByValue(patient.getProvinceCode());
+        // 市
+        String city = dictFeignClient.getDictNameByValue(patient.getCityCode());
+        // 区
+        String district = dictFeignClient.getDictNameByValue(patient.getDistrictCode());
+        patient.getParam().put("certificatesType", certificatesType);
+        patient.getParam().put("contactsCertificatesType", contactsCertificatesType);
+        patient.getParam().put("province", province);
+        patient.getParam().put("city", city);
+        patient.getParam().put("district", district);
+        patient.getParam().put("fullAddress", province + city + district + patient.getAddress());
+        return patient;
     }
 
     private Patient packageData(Patient patient) {

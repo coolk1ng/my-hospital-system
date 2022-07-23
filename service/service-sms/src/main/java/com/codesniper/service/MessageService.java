@@ -1,5 +1,7 @@
 package com.codesniper.service;
 
+import com.codesniper.yygh.vo.msm.MsmVo;
+
 /**
  * 短信Service
  *
@@ -12,9 +14,14 @@ public interface MessageService {
      * 发送短信
      * @param phone
      * @param code
-     * @param accessKeyId
-     * @param accessKeySecret 
      * @return Boolean
      */
-    Boolean sendMessage(String phone,String code, String accessKeyId, String accessKeySecret) throws Exception;
+    Boolean sendMessage(String phone,String code) throws Exception;
+
+    /**
+     * mq发送短信
+     * @param msmVo
+     * @return Boolean
+     */
+    Boolean sendMessage(MsmVo msmVo) throws Exception;
 }

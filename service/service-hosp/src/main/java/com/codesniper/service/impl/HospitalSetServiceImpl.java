@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.codesniper.mapper.HospitalSetMapper;
 import com.codesniper.service.HospitalSetService;
 import com.codesniper.yygh.model.hosp.HospitalSet;
+import com.codesniper.yygh.vo.order.SignInfoVo;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,5 +23,16 @@ public class HospitalSetServiceImpl extends ServiceImpl<HospitalSetMapper, Hospi
         queryWrapper.eq("hoscode",hoscode);
         HospitalSet hospitalSet = baseMapper.selectOne(queryWrapper);
         return hospitalSet.getSignKey();
+    }
+
+    @Override
+    public SignInfoVo getSignInfo(String hoscode) {
+        QueryWrapper<HospitalSet> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("hoscode",hoscode);
+        HospitalSet hospitalSet = baseMapper.selectOne(queryWrapper);
+        SignInfoVo signInfoVo = new SignInfoVo();
+        signInfoVo.setApiUrl(hospitalSet.getApiUrl());
+        signInfoVo.setSignKey(hospitalSet.getSignKey());
+        return signInfoVo;
     }
 }

@@ -3,12 +3,15 @@ package com.codesniper.controller.api;
 import com.codesniper.common.result.Result;
 import com.codesniper.service.DepartmentService;
 import com.codesniper.service.HospitalService;
+import com.codesniper.service.HospitalSetService;
 import com.codesniper.service.ScheduleService;
 import com.codesniper.yygh.model.hosp.Hospital;
 import com.codesniper.yygh.model.hosp.Schedule;
 import com.codesniper.yygh.vo.hosp.DepartmentVo;
 import com.codesniper.yygh.vo.hosp.HospitalQueryVo;
+import com.codesniper.yygh.vo.hosp.ScheduleOrderVo;
 import com.codesniper.yygh.vo.hosp.ScheduleQueryVo;
+import com.codesniper.yygh.vo.order.SignInfoVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -40,6 +43,9 @@ public class HospitalApiController {
 
     @Autowired
     private ScheduleService scheduleService;
+
+    @Autowired
+    private HospitalSetService hospitalSetService;
 
     @PostMapping("/getHospitalList")
     @ApiOperation("查询医院列表")
@@ -93,7 +99,19 @@ public class HospitalApiController {
     @ApiOperation("根据排班id获取排班数据")
     @GetMapping("/auth/getScheduleByScheduleId/{scheduleId}")
     public Result<Schedule> getScheduleByScheduleId(@PathVariable String scheduleId) {
-        return Result.ok(scheduleService.getScheduleByScheduleId(scheduleId));
+        return Result.ok(scheduleService.getScheduleByHosScheduleId(scheduleId));
+    }
+
+    @ApiOperation("根据排班id获取预约下单数据")
+    @PostMapping("/inner/getScheduleOrder")
+    public ScheduleOrderVo getScheduleOrder(@RequestParam String scheduleId) {
+        return scheduleService.getScheduleOrder(scheduleId);
+    }
+
+    @PostMapping("/inner/getSignInfo")
+    @ApiOperation("获取签名信息")
+    public SignInfoVo getSignInfo(@RequestParam String hoscode) {
+        return hospitalSetService.getSignInfo(hoscode);
     }
 
 }

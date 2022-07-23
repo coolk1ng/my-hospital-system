@@ -9,6 +9,7 @@
         <module>service-client</module>
         <module>service-client/service-dict-client</module>
         <module>service-gateway</module>
+        <module>service-client/service-hosp-client</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

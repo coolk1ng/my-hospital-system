@@ -14,6 +14,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -88,6 +89,7 @@ public class DicServiceImpl extends ServiceImpl<DictMapper, Dict> implements Dic
     }
 
     @Override
+    @Transactional
     public String getDictName(String dictCode, String value) {
         if (StringUtils.isBlank(dictCode)) {
             //如果dictCode为空,根据value查询

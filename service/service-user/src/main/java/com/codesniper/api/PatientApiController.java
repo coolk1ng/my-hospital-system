@@ -1,11 +1,14 @@
 package com.codesniper.api;
 
+import com.alibaba.fastjson.JSON;
 import com.codesniper.common.result.Result;
 import com.codesniper.common.utils.AuthContextHolder;
 import com.codesniper.service.PatientService;
 import com.codesniper.yygh.model.user.Patient;
+import com.codesniper.yygh.vo.feign.FeignVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/user/patient")
 @Api(tags = "就诊人")
+@Slf4j
 public class PatientApiController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PatientApiController.class);
@@ -60,5 +64,12 @@ public class PatientApiController {
     @ApiOperation("删除就诊人")
     public Result<Boolean> deletePatient(@PathVariable Long id) {
         return Result.ok(patientService.removeById(id));
+    }
+
+    @PostMapping("/inner/getPatientById")
+    @ApiOperation("获取就诊人信息")
+    public Patient getPatient(@RequestBody FeignVo feignVo) {
+        log.info(JSON.toJSONString(feignVo));
+        return patientService.getPatientById(feignVo.getId());
     }
 }
