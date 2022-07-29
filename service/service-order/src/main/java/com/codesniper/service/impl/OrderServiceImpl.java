@@ -1,6 +1,10 @@
 package com.codesniper.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.codesniper.client.HospFeignClient;
 import com.codesniper.client.PatientFeignClient;
@@ -17,7 +21,10 @@ import com.codesniper.yygh.model.user.Patient;
 import com.codesniper.yygh.vo.feign.FeignVo;
 import com.codesniper.yygh.vo.hosp.ScheduleOrderVo;
 import com.codesniper.yygh.vo.order.OrderMqVo;
+import com.codesniper.yygh.vo.order.OrderQueryVo;
 import com.codesniper.yygh.vo.order.SignInfoVo;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +40,7 @@ import java.util.Random;
  * @since 2022/7/18 00:30
  */
 @Service("OrderService")
+@Slf4j
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implements OrderService {
 
     @Autowired
@@ -134,10 +142,53 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, OrderInfo> implem
             orderMqVo.setReservedNumber(reservedNumber);
             orderMqVo.setAvailableNumber(availableNumber);
             // todo 发送mq更新号源
-            rabbitService.sendMessage(MqConstant.EXCHANGE_DIRECT_ORDER,MqConstant.ROUTING_ORDER,orderMqVo);
+            rabbitService.sendMessage(MqConstant.EXCHANGE_DIRECT_ORDER, MqConstant.ROUTING_ORDER, orderMqVo);
         } else {
             throw new MyException(object.getString("message"), ResultCodeEnum.FAIL.getCode());
         }
+        log.info(JSON.toJSONString("result" + result.getId()));
         return result.getId();
+    }
+
+    @Override
+    public OrderInfo getOrderInfo(String orderId) {
+        OrderInfo orderInfo = baseMapper.selectById(orderId);
+        this.packOrderInfo(orderInfo);
+        return orderInfo;
+    }
+
+    @Override
+    public IPage<OrderInfo> selectPage(Page<OrderInfo> pageParam, OrderQueryVo orderQueryVo) {
+        // 医院名称
+        String keyword = orderQueryVo.getKeyword();
+        // 就诊人名称
+        Long patientId = orderQueryVo.getPatientId();
+        // 订单状态
+        String orderStatus = orderQueryVo.getOrderStatus();
+        // 安排时间
+        String reserveDate = orderQueryVo.getReserveDate();
+        String createTimeBegin = orderQueryVo.getCreateTimeBegin();
+        String createTimeEnd = orderQueryVo.getCreateTimeEnd();
+
+        QueryWrapper<OrderInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(StringUtils.isNotEmpty(keyword), "hosname", keyword);
+        queryWrapper.eq(patientId != null, "patient_id", patientId);
+        queryWrapper.eq(StringUtils.isNotEmpty(orderStatus), "order_status", orderStatus);
+        queryWrapper.ge(StringUtils.isNotEmpty(reserveDate), "reserve_date", reserveDate);
+        queryWrapper.ge(StringUtils.isNotEmpty(createTimeBegin), "create_time", createTimeBegin);
+        queryWrapper.le(StringUtils.isNotEmpty(createTimeEnd), "create_time", createTimeEnd);
+        Page<OrderInfo> orderInfoList = baseMapper.selectPage(pageParam, queryWrapper);
+        orderInfoList.getRecords().forEach(this::packOrderInfo);
+        return orderInfoList;
+    }
+
+    /**
+     * 封装订单相关信息
+     *
+     * @param orderInfo
+     * @return void
+     */
+    private void packOrderInfo(OrderInfo orderInfo) {
+        orderInfo.getParam().put("orderStatusString", OrderStatusEnum.getStatusNameByStatus(orderInfo.getOrderStatus()));
     }
 }
