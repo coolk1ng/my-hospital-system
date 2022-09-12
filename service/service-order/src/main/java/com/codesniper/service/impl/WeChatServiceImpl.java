@@ -1,12 +1,18 @@
 package com.codesniper.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.codesniper.service.OrderService;
 import com.codesniper.service.PaymentService;
+import com.codesniper.service.RefundInfoService;
 import com.codesniper.service.WeChatService;
 import com.codesniper.utils.HttpClient;
 import com.codesniper.yygh.enums.PaymentTypeEnum;
+import com.codesniper.yygh.enums.RefundStatusEnum;
 import com.codesniper.yygh.model.order.OrderInfo;
+import com.codesniper.yygh.model.order.PaymentInfo;
+import com.codesniper.yygh.model.order.RefundInfo;
+import com.github.wxpay.sdk.WXPayConstants;
 import com.github.wxpay.sdk.WXPayUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +52,9 @@ public class WeChatServiceImpl implements WeChatService {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+
+    @Autowired
+    private RefundInfoService refundInfoService;
 
     @Override
     public Map<String, Object> createNative(Long orderId) {
@@ -92,7 +102,7 @@ public class WeChatServiceImpl implements WeChatService {
             // 二维码地址
             map.put("codeUrl", resultMap.get("code_url"));
             if (resultMap.get("result_code") != null) {
-                redisTemplate.opsForValue().set(orderId.toString(), String.valueOf(map),120, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(orderId.toString(), String.valueOf(map), 120, TimeUnit.MINUTES);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -114,15 +124,64 @@ public class WeChatServiceImpl implements WeChatService {
 
             // 设置请求内容
             HttpClient client = new HttpClient("https://api.mch.weixin.qq.com/pay/orderquery");
-            client.setXmlParam(WXPayUtil.generateSignedXml(map,partnerKey));
+            client.setXmlParam(WXPayUtil.generateSignedXml(map, partnerKey));
             client.setHttps(true);
             client.post();
 
             // 得到微信接口返回数据
             String content = client.getContent();
             Map<String, String> resultMap = WXPayUtil.xmlToMap(content);
-            log.info("支付状态:{}",JSON.toJSONString(resultMap));
+            log.info("支付状态:{}", JSON.toJSONString(resultMap));
             return resultMap;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Boolean refund(Long orderId, Integer paymentType) {
+        try {
+            // 获取支付记录信息
+            PaymentInfo paymentInfo = paymentService.getPaymentInfo(orderId, paymentType);
+            // 添加到退款记录表
+            RefundInfo refundInfo = refundInfoService.saveRefundInfo(paymentInfo);
+            // 判断当前订单是否已经退款
+            if (refundInfo.getRefundStatus().intValue() == RefundStatusEnum.REFUND.getStatus()) {
+                return true;
+            }
+
+            // 调用微信接口退款
+            Map<String, String> paramMap = new HashMap<>(8);
+            paramMap.put("appid", appid);       //公众账号ID
+            paramMap.put("mch_id", partner);   //商户编号
+            paramMap.put("nonce_str", WXPayUtil.generateNonceStr());
+            paramMap.put("transaction_id", paymentInfo.getTradeNo()); //微信订单号
+            paramMap.put("out_trade_no", paymentInfo.getOutTradeNo()); //商户订单编号
+            paramMap.put("out_refund_no", "tk" + paymentInfo.getOutTradeNo()); //商户退款单号
+//       paramMap.put("total_fee",paymentInfoQuery.getTotalAmount().multiply(new BigDecimal("100")).longValue()+"");
+//       paramMap.put("refund_fee",paymentInfoQuery.getTotalAmount().multiply(new BigDecimal("100")).longValue()+"");
+            paramMap.put("total_fee", "1");
+            paramMap.put("refund_fee", "1");
+
+            String xml = WXPayUtil.generateSignedXml(paramMap, partnerKey);
+            HttpClient client = new HttpClient("https://api.mch.weixin.qq.com/secapi/pay/refund");
+            client.setXmlParam(xml);
+            client.setCert(true);
+            client.setHttps(true);
+            client.setCertPassword(partner);
+            client.post();
+            String content = client.getContent();
+            Map<String, String> map = WXPayUtil.xmlToMap(content);
+
+            if (WXPayConstants.SUCCESS.equalsIgnoreCase(map.get("result_code"))) {
+                refundInfo.setCallbackTime(new Date());
+                refundInfo.setTradeNo(map.get("refund_id"));
+                refundInfo.setRefundStatus(RefundStatusEnum.REFUND.getStatus());
+                refundInfo.setCallbackContent(JSONObject.toJSONString(map));
+                refundInfoService.updateById(refundInfo);
+                return true;
+            }
+            return false;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

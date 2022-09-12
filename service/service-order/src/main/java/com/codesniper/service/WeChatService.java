@@ -23,4 +23,12 @@ public interface WeChatService {
      * @return Map<String,String>
      */
     Map<String, String> getPayStatus(Long orderId);
+
+    /**
+     * 退款
+     * @param orderId
+     * @param paymentType
+     * @return Boolean
+     */
+    Boolean refund(Long orderId,Integer paymentType);
 }

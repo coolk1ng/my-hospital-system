@@ -15,6 +15,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -33,6 +34,8 @@ import java.util.Map;
  * http请求客户端
  */
 public class HttpClient {
+    @Value("${weixin.cert}")
+    private String cert;
     private String url;
     private Map<String, String> param;
     private int statusCode;
@@ -127,7 +130,7 @@ public class HttpClient {
         try {
             if (isHttps) {
                 if(isCert) {
-                    FileInputStream inputStream = new FileInputStream(new File(""));
+                    FileInputStream inputStream = new FileInputStream(new File(cert));
                     KeyStore keystore = KeyStore.getInstance("PKCS12");
                     char[] partnerId2charArray = certPassword.toCharArray();
                     keystore.load(inputStream, partnerId2charArray);
